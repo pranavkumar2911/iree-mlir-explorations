@@ -31,4 +31,4 @@ The script downloads MobileNetV2 from the ONNX model zoo, imports it to MLIR, an
 
 ## Outcome
 
-Compiled successfully. 36 dispatches in the flow dialect from roughly 150-180 raw ONNX ops — about a 5x reduction in kernel count from fusion. See `observations.md` for details on what got fused.
+Compiled successfully. 36 dispatches in the flow dialect from roughly 150-180 raw ONNX ops and about a 5x reduction in kernel count from fusion. See `observations.md` for details on what got fused.

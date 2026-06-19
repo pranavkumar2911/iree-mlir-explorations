@@ -23,7 +23,7 @@ So my 3-line MLIR became a full self-contained module: native machine code
 
 ## What this tells me about how MIPS would plug into IREE
 
-For MIPS specifically, the picture would be the same shape — except the
+For MIPS specifically, the picture would be the same shape, except the
 embedded blob would be S8200 binary code, the HAL backend would be a MIPS
 driver, and there'd be a `mips_npu` dialect feeding into the lowering.
 Everything else (VM, command buffers, fences, ABI) inherits from upstream.

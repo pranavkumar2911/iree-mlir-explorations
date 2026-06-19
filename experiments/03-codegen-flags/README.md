@@ -1,8 +1,8 @@
-# Experiment 03 — Codegen flags across x86 ISAs + ARM SVE
+# Experiment 03: Codegen flags across x86 ISAs + ARM SVE
 
 ## Goal
 
-Take a naive matrix multiplication in C and compile it for five targets — SSE2 scalar (baseline), AVX2, AVX-512, an AMX attempt, and ARM SVE — to see what auto-vectorization the compiler does for each. Directly addresses Pekka's question in our call about whether I could try compiling something to use AVX/AMX-style hardware via compiler flags.
+Take a naive matrix multiplication in C and compile it for five targets with SSE2 scalar (baseline), AVX2, AVX-512, an AMX attempt, and ARM SVE, to see what auto-vectorization the compiler does for each. Directly addresses Pekka's question in our call about whether I could try compiling something to use AVX/AMX-style hardware via compiler flags.
 
 ## Hardware / environment
 
