@@ -14,3 +14,7 @@ __pycache__/
 # Experiment 02 — large imported MLIR and dumps regenerable by compile.sh
 experiments/02-mobilenet-onnx/mobilenetv2.mlir
 experiments/02-mobilenet-onnx/dumps/
+
+# Experiment 04 — large dumps regeneratable by compile.sh
+experiments/04-iree-matmul-lowering/dumps_cpu/
+experiments/04-iree-matmul-lowering/dumps_avx512/
