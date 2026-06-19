@@ -1,15 +1,3 @@
-# IREE / MLIR Explorations
-
-Personal study notes and small experiments while learning IREE and MLIR
-for ML accelerator compilation. Started June 2026 while preparing for
-work on the MIPS S8200 NPU compilation stack.
-
-## Layout
-
-- **`experiments/`** — discrete, reproducible experiments. Each has its
-  own README explaining the goal, files, and how to reproduce.
-- **`notes/`** — cross-cutting notes and learning journal.
-
 ## What I've worked through so far
 
 **Experiment 01 — first IREE compile + run.** Got the full pipeline working end-to-end on my laptop: hand-authored a 5-line MLIR program, compiled it for the local CPU backend, ran it from Python, and inspected all 12 intermediate compilation phases. The final IR contains a 3.5KB embedded x86-64 ELF binary along with the VM orchestration code that loads and dispatches it. See [`experiments/01-first-compile/`](experiments/01-first-compile/).
@@ -18,14 +6,6 @@ work on the MIPS S8200 NPU compilation stack.
 
 **Experiment 03 — codegen flags across ISAs.** Compiled a naive matmul for SSE2, AVX2, AVX-512, an AMX attempt, and ARM SVE. Found that naive matmul doesn't auto-vectorize on x86 (column-stride defeats SIMD) and AMX isn't reached from plain C — but ARM SVE does vectorize, using its gather load instruction. Concrete evidence for why MLIR-style structured lowering matters for ML compilation. See [`experiments/03-codegen-flags/`](experiments/03-codegen-flags/).
 
+**Experiment 04 — IREE matmul lowering vs raw C codegen.** Same matmul as experiment 03, but expressed as `linalg.matmul` and compiled through IREE for the same Tigerlake target. Where GCC produced scalar FMA on raw C, IREE produced `vector<16xf32>` operations with an 8×16 register-tile pattern — full AVX-512 zmm registers, properly vectorized. Same algorithm, same hardware, completely different code. The IR structure made the difference, not the optimizer's cleverness. See [`experiments/04-iree-matmul-lowering/`](experiments/04-iree-matmul-lowering/).
+
 More to come.
-
-## Background
-
-Recent MS in Computer Engineering from ASU. Prior work relevant to
-this stack:
-
-- hls4ml + QAT CNN accelerator on Xilinx PYNQ-Z2 — full HW/SW co-design
-  flow from QKeras model down to FPGA bitstream
-- TFLite Micro speech recognition on nRF52840 Cortex-M4 with CMSIS-NN
-- GSelect branch predictor in gem5 with XOR-folded global history
