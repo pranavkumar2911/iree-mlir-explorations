@@ -1,19 +1,16 @@
 # Python
 __pycache__/
 *.pyc
-*.pyo
-.venv/
-venv/
 
-# Editor
+# Editor / OS
 .vscode/
 .idea/
-*.swp
-
-# OS
 .DS_Store
-Thumbs.db
 
-# Build artifacts — large or regeneratable
-# (For now, we DO commit small .vmfb files since they're tiny and useful as artifacts.
-#  When models get big, add *.vmfb here.)
+# IREE build artifacts — regeneratable, large
+*.vmfb
+*.onnx
+
+# Experiment 02 — large imported MLIR and dumps regenerable by compile.sh
+experiments/02-mobilenet-onnx/mobilenetv2.mlir
+experiments/02-mobilenet-onnx/dumps/
