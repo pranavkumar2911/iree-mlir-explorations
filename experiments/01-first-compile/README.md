@@ -1,4 +1,4 @@
-# Experiment 01 — First IREE compile + run
+# Experiment 01: First IREE compile + run
 
 ## Goal
 Verify the full IREE pipeline works end-to-end on this machine:

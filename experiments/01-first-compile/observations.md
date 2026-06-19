@@ -1,4 +1,4 @@
-# Observations — Experiment 01
+# Observations: Experiment 01
 
 ## What I observed comparing phase 1 vs phase 12
 

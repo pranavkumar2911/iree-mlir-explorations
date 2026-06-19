@@ -1,4 +1,4 @@
-# Experiment 02 — MobileNetV2 ONNX through IREE
+# Experiment 02: MobileNetV2 ONNX through IREE
 
 ## Goal
 
