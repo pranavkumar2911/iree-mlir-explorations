@@ -1,4 +1,4 @@
-# Observations — Experiment 04
+# Observations: Experiment 04
 
 ## Goal
 

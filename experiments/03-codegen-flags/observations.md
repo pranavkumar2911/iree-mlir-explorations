@@ -1,4 +1,4 @@
-# Observations — Experiment 03
+# Observations: Experiment 03
 
 ## Goal recap
 

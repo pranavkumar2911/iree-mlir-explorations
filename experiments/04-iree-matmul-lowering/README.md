@@ -1,4 +1,4 @@
-# Experiment 04 — IREE matmul lowering vs raw C codegen
+# Experiment 04: IREE matmul lowering vs raw C codegen
 
 ## Goal
 
