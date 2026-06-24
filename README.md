@@ -8,4 +8,6 @@
 
 **Experiment 04 — IREE matmul lowering vs raw C codegen.** Same matmul as experiment 03, but expressed as `linalg.matmul` and compiled through IREE for the same Tigerlake target. Where GCC produced scalar FMA on raw C, IREE produced `vector<16xf32>` operations with an 8×16 register-tile pattern — full AVX-512 zmm registers, properly vectorized. Same algorithm, same hardware, completely different code. The IR structure made the difference, not the optimizer's cleverness. See [`experiments/04-iree-matmul-lowering/`](experiments/04-iree-matmul-lowering/).
 
+**Experiment 05 — MobileNetV2 performance study.** Built a reproducible benchmark harness to measure MobileNetV2 inference latency across compile-flag and target-architecture variants. Calibrated the noise floor (~10% CV on a WSL2 consumer laptop), then identified that compiling for AVX-512 vs AVX2 gives a 4.6× speedup on this workload while optimization level (O0/O2/O3) sits within noise. Workload is compute-bound on SIMD throughput, not memory-bound. See [`experiments/05-mobilenet-perf-study/`](experiments/05-mobilenet-perf-study/).
+
 More to come.
