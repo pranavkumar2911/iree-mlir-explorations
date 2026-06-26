@@ -10,4 +10,6 @@
 
 **Experiment 05 — MobileNetV2 performance study.** Built a reproducible benchmark harness to measure MobileNetV2 inference latency across compile-flag and target-architecture variants. Calibrated the noise floor (~10% CV on a WSL2 consumer laptop), then identified that compiling for AVX-512 vs AVX2 gives a 4.6× speedup on this workload while optimization level (O0/O2/O3) sits within noise. Workload is compute-bound on SIMD throughput, not memory-bound. See [`experiments/05-mobilenet-perf-study/`](experiments/05-mobilenet-perf-study/).
 
+**Experiment 06 — Toy NPU backend design study.** Read IREE's actual vendor backend source code (the Local plugin is 39 lines, CUDA is hundreds — same architecture, different inlining) to understand the three-layer pattern: plugin file → device class → dialect. Then sketched a hypothetical `toy_npu` backend at the same structural level: operations like `tile_load` / `tile_matmul` / `tile_store`, a conversion pattern from `linalg.matmul`, and a HAL driver shape. Design study, not working implementation. See [`experiments/06-toy-npu-backend/`](experiments/06-toy-npu-backend/).
+
 More to come.
