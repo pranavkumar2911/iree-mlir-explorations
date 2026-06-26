@@ -8,7 +8,7 @@ Test whether structured IR (linalg.matmul) lets the compiler vectorize where raw
 source ~/IREE-env/bin/activate
 ./compile.sh
 
-This compiles `matmul.mlir` twice — once for host CPU defaults, once with explicit AVX-512 target — and dumps all 12 compilation phases per build.
+This compiles `matmul.mlir` twice, once for host CPU defaults, once with explicit AVX-512 target and dumps all 12 compilation phases per build.
 
 ## Outcome
 

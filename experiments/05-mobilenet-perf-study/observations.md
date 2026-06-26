@@ -1,4 +1,4 @@
-# Observations — Experiment 05
+# Observations: Experiment 05
 
 ## Goal
 
@@ -98,9 +98,9 @@ Things I'd investigate if I had more time:
 
 1. **Per-dispatch timing via Tracy.** End-to-end measurements show the total; Tracy would show which of the 36 dispatches dominates. My guess: the high-channel-count convs in the middle of the network (192, 384 channels). Confirming this would tell us where to focus compiler effort.
 
-2. **INT8 quantized model.** MobileNetV2 has known INT8 variants. INT8 would put 4× more lanes per register — for a compute-bound workload that should give substantial speedup. If it doesn't, that would tell me the bottleneck shifted to memory bandwidth at lower precision.
+2. **INT8 quantized model.** MobileNetV2 has known INT8 variants. INT8 would put 4× more lanes per register for a compute-bound workload that should give substantial speedup. If it doesn't, that would tell me the bottleneck shifted to memory bandwidth at lower precision.
 
-3. **Multi-threaded execution.** Currently single-threaded. Tigerlake has 4 cores — IREE supports task-system parallelism. Would expect ~3× speedup on conv-heavy workloads (not 4× due to scheduling overhead).
+3. **Multi-threaded execution.** Currently single-threaded. Tigerlake has 4 cores and IREE supports task-system parallelism. Would expect ~3× speedup on conv-heavy workloads (not 4× due to scheduling overhead).
 
 4. **Larger input batches.** Batch=1 has minimal data reuse. Larger batches improve arithmetic intensity. Would expect proportional throughput gains.
 
@@ -108,7 +108,7 @@ Things I'd investigate if I had more time:
 
 ## What this tells me about NPU compiler work
 
-The measurement pattern in this experiment — characterize the workload, isolate variables, identify compute-vs-memory regime, propose hypotheses for further investigation — is the daily work of an NPU performance engineer. The specific findings here translate directly to NPU thinking:
+The measurement pattern in this experiment is characterize the workload, isolate variables, identify compute-vs-memory regime, propose hypotheses for further investigation, is the daily work of an NPU performance engineer. The specific findings here translate directly to NPU thinking:
 
 - **Width and register count matter more than peak FLOPS in a spec sheet.** An NPU with 256 GFLOPS peak but limited register file may underperform one with 128 GFLOPS peak and better register/tile structure on real workloads.
 - **Structural compiler decisions dominate over micro-optimizations.** Once you've vectorized correctly and tiled correctly, further low-level optimization tweaks have diminishing returns. For NPU work, this means the *dialect design* and *lowering patterns* are higher leverage than instruction selection.

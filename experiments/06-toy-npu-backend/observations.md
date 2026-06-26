@@ -1,4 +1,4 @@
-# Observations — Experiment 06
+# Observations: Experiment 06
 
 ## What I did
 

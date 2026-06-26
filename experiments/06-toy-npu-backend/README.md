@@ -1,4 +1,4 @@
-# Experiment 06 — Toy NPU backend design study
+# Experiment 06: Toy NPU backend design study
 
 ## Goal
 

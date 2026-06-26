@@ -2,7 +2,7 @@
 
 ## Goal
 
-Test the central claim that came out of Experiment 03: that structured IR (linalg.matmul) lets compilers do what raw C cannot. Compile the same fp32 64×64 matmul through IREE for two targets — the host CPU defaults and an explicit AVX-512 target — and see what kind of code IREE produces, compared to what GCC produced for raw C in Experiment 03.
+Test the central claim that came out of Experiment 03: that structured IR (linalg.matmul) lets compilers do what raw C cannot. Compile the same fp32 64×64 matmul through IREE for two targets, the host CPU defaults and an explicit AVX-512 target and see what kind of code IREE produces, compared to what GCC produced for raw C in Experiment 03.
 
 ## Setup
 

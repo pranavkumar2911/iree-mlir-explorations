@@ -1,11 +1,11 @@
-## Local backend — the simplest example (39 lines total!)
+## Local backend: the simplest example (39 lines total!)
 
 File: `compiler/plugins/target/Local/LocalTarget.cpp`
 
 This is the *minimal* shape of a vendor backend plugin in IREE. The entire file is:
 
-1. Includes — pulls in `LocalDevice.h` (the actual device class) and plugin/registry infrastructure
-2. A `LocalSession` struct that extends `PluginSession` and overrides `populateHALTargetDevices` — that single method registers a device with the HAL
+1. Includes - pulls in `LocalDevice.h` (the actual device class) and plugin/registry infrastructure
+2. A `LocalSession` struct that extends `PluginSession` and overrides `populateHALTargetDevices` - that single method registers a device with the HAL
 3. An `extern "C"` registration function that the IREE plugin loader calls
 
 The pattern:

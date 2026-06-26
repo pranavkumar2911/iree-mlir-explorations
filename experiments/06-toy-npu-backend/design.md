@@ -1,8 +1,8 @@
-# toy_npu — design sketch for a custom IREE backend
+# toy_npu: design sketch for a custom IREE backend
 
 ## Goal
 
-Sketch the architecture of a hypothetical NPU backend for IREE, grounded in how IREE's existing vendor backends are actually structured. This is a design document, not a working implementation — but it's a design that I could iteratively build out, knowing the structure is correct.
+Sketch the architecture of a hypothetical NPU backend for IREE, grounded in how IREE's existing vendor backends are actually structured. This is a design document, not a working implementation but it's a design that I could iteratively build out, knowing the structure is correct.
 
 ## Hypothetical hardware
 
