@@ -26,7 +26,7 @@ This is loosely inspired by published accelerator architectures (AMX, SME, vario
 
 Based on reading IREE's existing vendor backends (LLVMCPU, CUDA, Local), a toy_npu backend has three layers:
 
-### Layer 1 — Plugin file (small)
+### Layer 1: Plugin file (small)
 
 Location: `compiler/plugins/target/ToyNPU/ToyNPUTarget.cpp`
 
@@ -49,7 +49,7 @@ extern "C" bool iree_register_compiler_plugin_hal_target_toy_npu(...) {
 
 The plugin tells IREE: "I provide a device called 'toy-npu'. Here's how to construct it."
 
-### Layer 2 — Device class (the substantive part)
+### Layer 2: Device class (the substantive part)
 
 Location: `compiler/src/iree/compiler/Dialect/HAL/Target/Devices/ToyNPUDevice.{h,cpp}`
 
@@ -64,7 +64,7 @@ Implements the `TargetBackend` contract (from `TargetBackend.h`). Key methods to
 
 The pass pipelines are where the actual lowering work happens.
 
-### Layer 3 — Dialect (the operations)
+### Layer 3: Dialect (the operations)
 
 Location: `compiler/src/iree/compiler/Dialect/ToyNPU/IR/`
 
@@ -158,7 +158,7 @@ class InnerMatmulToToyNPU : public OpRewritePattern<linalg::MatmulOp> {
 
 The toy_npu ops are translated to whatever binary format the toy NPU's hardware loader expects. For a real NPU, this might be a custom command stream. For the design study, FlatBuffer (the same format IREE uses elsewhere) is fine.
 
-## HAL driver — the runtime side
+## HAL driver: the runtime side
 
 The compiler produces a `.vmfb` containing toy_npu instructions. The runtime needs a HAL driver to actually execute them on (simulated or real) hardware.
 
