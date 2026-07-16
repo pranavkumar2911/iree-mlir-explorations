@@ -1,4 +1,4 @@
-# Experiment 05 — MobileNetV2 performance study
+# Experiment 05: MobileNetV2 performance study
 
 ## Goal
 
