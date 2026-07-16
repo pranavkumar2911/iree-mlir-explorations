@@ -12,4 +12,6 @@
 
 **Experiment 06: Toy NPU backend design study.** Read IREE's actual vendor backend source code (the Local plugin is 39 lines, CUDA is hundreds with same architecture, different inlining) to understand the three-layer pattern: plugin file → device class → dialect. Then sketched a hypothetical `toy_npu` backend at the same structural level: operations like `tile_load` / `tile_matmul` / `tile_store`, a conversion pattern from `linalg.matmul`, and a HAL driver shape. Design study, not working implementation. See [`experiments/06-toy-npu-backend/`](experiments/06-toy-npu-backend/).
 
+**Experiment 07: Working toy_npu dialect in IREE.** Built on Experiment 06's design study by actually implementing it — forked IREE, added a working `ToyNPU` dialect with a custom type (`!toy_npu.tile`) and operation (`toy_npu.tile_matmul`) in TableGen, wired the dialect into IREE's registration and CMake build, and rebuilt `iree-opt` from source. Verified end-to-end: `iree-opt --show-dialects` shows `toy_npu` registered alongside `hal`, `flow`, `stream`, `tosa`; MLIR code using `toy_npu.tile_matmul` round-trips through parse/verify/print cleanly. See [`experiments/07-toy-npu-dialect/`](experiments/07-toy-npu-dialect/).
+
 More to come.
