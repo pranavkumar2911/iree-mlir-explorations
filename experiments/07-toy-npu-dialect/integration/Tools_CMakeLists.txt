@@ -47,6 +47,7 @@ iree_cc_library(
     iree::compiler::Dialect::TensorExt::IR
     iree::compiler::Dialect::TensorExt::Transforms
     iree::compiler::Dialect::ToyNPU::IR
+    iree::compiler::Dialect::ToyNPU::Conversion::LinalgToToyNPU::LinalgToToyNPU
     iree::compiler::Dialect::Util::IR
     iree::compiler::Dialect::Util::TransformOps
     iree::compiler::Dialect::Util::Transforms
