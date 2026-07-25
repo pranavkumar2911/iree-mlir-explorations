@@ -24,7 +24,7 @@ namespace mlir::iree_compiler::IREE::ToyNPU {
 
 void ToyNPUDialect::initialize() {
   addTypes<TileType>();
-  addOperations<TileMatmulOp>();
+  addOperations<TileMatmulOp, TileLoadOp, TileStoreOp>();
 }
 
 }  // namespace mlir::iree_compiler::IREE::ToyNPU

@@ -9,11 +9,11 @@ Move from "I sketched a dialect design" (Experiment 06) to "I built one." Fork I
 A fully functional custom MLIR dialect integrated into IREE:
 
 - **`!toy_npu.tile`** — custom type representing a hardware tile register (16×16 FP32)
-- **`toy_npu.tile_matmul`** — operation computing `c_out = a * b + c_in` on tiles
+- **`toy_npu.tile_load`** — load a 16x16 tile from a memref into a tile register
+- **`toy_npu.tile_matmul`** — compute `c_out = a * b + c_in` on three tiles
+- **`toy_npu.tile_store`** — write a tile register back to a memref
 - **Registration** in IREE's dialect init so `iree-opt --show-dialects` includes `toy_npu`
 - **CMake integration** so the dialect compiles into IREE's static library set and links into `iree-opt`
-
-Result: `iree-opt` can parse, verify, and print MLIR programs using `toy_npu.tile_matmul` operations.
 
 ## Proof
 
@@ -42,6 +42,29 @@ module {
 ```
 
 This means the parser accepts the custom syntax, the verifier accepts the operand types, and the printer emits the dialect back out cleanly. Standard MLIR round-trip.
+
+**Full load → matmul → store cycle** (`proof/all_ops_test_output.mlir`):
+
+Input `test_all_ops.mlir`:
+```mlir
+func.func @full_matmul(
+    %A: memref<16x16xf32>,
+    %B: memref<16x16xf32>,
+    %C: memref<16x16xf32>
+) {
+  %c0 = arith.constant 0 : index
+  %a_tile = toy_npu.tile_load %A[%c0, %c0] : memref<16x16xf32> -> !toy_npu.tile
+  %b_tile = toy_npu.tile_load %B[%c0, %c0] : memref<16x16xf32> -> !toy_npu.tile
+  %c_tile = toy_npu.tile_load %C[%c0, %c0] : memref<16x16xf32> -> !toy_npu.tile
+  %result = toy_npu.tile_matmul %a_tile, %b_tile, %c_tile
+      : (!toy_npu.tile, !toy_npu.tile, !toy_npu.tile) -> !toy_npu.tile
+  toy_npu.tile_store %result, %C[%c0, %c0]
+      : !toy_npu.tile, memref<16x16xf32>
+  return
+}
+```
+
+Output shows the full sequence parsed and verified — three ops composing correctly.
 
 ## Files
 
