@@ -10,6 +10,7 @@
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
+#include "mlir/Dialect/SCF/IR/SCF.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Pass/PassManager.h"
@@ -20,9 +21,7 @@ namespace mlir::iree_compiler::IREE::ToyNPU {
 
 namespace {
 
-//===----------------------------------------------------------------------===//
-// linalg.matmul -> toy_npu sequence
-//===----------------------------------------------------------------------===//
+constexpr int64_t kTileSize = 16;
 
 class ConvertLinalgMatmulToToyNPU
     : public OpRewritePattern<linalg::MatmulOp> {
@@ -33,60 +32,94 @@ public:
                                  PatternRewriter &rewriter) const override {
     Location loc = op.getLoc();
 
-    // Get inputs (A, B) and output (C) memrefs from the linalg.matmul.
-    // linalg.matmul takes 2 inputs and 1 "output" (which is really an
-    // input-output for the accumulator).
     if (op.getInputs().size() != 2 || op.getOutputs().size() != 1) {
-      return rewriter.notifyMatchFailure(
-          op, "expected 2 inputs and 1 output for linalg.matmul");
+      return rewriter.notifyMatchFailure(op, "expected 2 inputs and 1 output");
     }
 
     Value A = op.getInputs()[0];
     Value B = op.getInputs()[1];
     Value C = op.getOutputs()[0];
 
-    // Check that all three operands are memrefs of shape 16x16xf32.
-    // This is a scope restriction: we only handle the exact tile size for now.
-    auto checkShape = [&](Value v) -> bool {
-      auto memrefType = dyn_cast<MemRefType>(v.getType());
-      if (!memrefType) return false;
-      if (!memrefType.getElementType().isF32()) return false;
-      auto shape = memrefType.getShape();
-      return shape.size() == 2 && shape[0] == 16 && shape[1] == 16;
-    };
+    auto aType = dyn_cast<MemRefType>(A.getType());
+    auto bType = dyn_cast<MemRefType>(B.getType());
+    auto cType = dyn_cast<MemRefType>(C.getType());
 
-    if (!checkShape(A) || !checkShape(B) || !checkShape(C)) {
-      return rewriter.notifyMatchFailure(
-          op, "only handling 16x16xf32 memrefs for now");
+    if (!aType || !bType || !cType) {
+      return rewriter.notifyMatchFailure(op, "operands must be memrefs");
     }
 
-    // Emit index constants.
-    Value c0 = rewriter.create<arith::ConstantIndexOp>(loc, 0);
+    if (!aType.getElementType().isF32() ||
+        !bType.getElementType().isF32() ||
+        !cType.getElementType().isF32()) {
+      return rewriter.notifyMatchFailure(op, "operands must be fp32");
+    }
 
-    // Build the toy_npu tile type.
+    if (aType.getShape().size() != 2 ||
+        bType.getShape().size() != 2 ||
+        cType.getShape().size() != 2) {
+      return rewriter.notifyMatchFailure(op, "operands must be 2D");
+    }
+
+    int64_t M = aType.getShape()[0];
+    int64_t K = aType.getShape()[1];
+    int64_t Kb = bType.getShape()[0];
+    int64_t N = bType.getShape()[1];
+    int64_t Mc = cType.getShape()[0];
+    int64_t Nc = cType.getShape()[1];
+
+    if (K != Kb || M != Mc || N != Nc) {
+      return rewriter.notifyMatchFailure(op, "dim mismatch");
+    }
+
+    if (M <= 0 || N <= 0 || K <= 0 ||
+        M % kTileSize != 0 ||
+        N % kTileSize != 0 ||
+        K % kTileSize != 0) {
+      return rewriter.notifyMatchFailure(
+          op, "all dims must be positive and divisible by 16");
+    }
+
+    Value c0 = rewriter.create<arith::ConstantIndexOp>(loc, 0);
+    Value cM = rewriter.create<arith::ConstantIndexOp>(loc, M);
+    Value cN = rewriter.create<arith::ConstantIndexOp>(loc, N);
+    Value cK = rewriter.create<arith::ConstantIndexOp>(loc, K);
+    Value cTile = rewriter.create<arith::ConstantIndexOp>(loc, kTileSize);
+
     Type tileType = TileType::get(rewriter.getContext());
 
-    // Emit tile_loads for A, B, and C (accumulator).
-    Value aTile = rewriter.create<TileLoadOp>(loc, tileType, A, c0, c0);
-    Value bTile = rewriter.create<TileLoadOp>(loc, tileType, B, c0, c0);
-    Value cTile = rewriter.create<TileLoadOp>(loc, tileType, C, c0, c0);
+    auto iLoop = rewriter.create<scf::ForOp>(loc, c0, cM, cTile);
+    rewriter.setInsertionPointToStart(iLoop.getBody());
+    Value i = iLoop.getInductionVar();
 
-    // Emit tile_matmul: c_out = a * b + c_in
-    Value result = rewriter.create<TileMatmulOp>(
-        loc, tileType, aTile, bTile, cTile);
+    auto jLoop = rewriter.create<scf::ForOp>(loc, c0, cN, cTile);
+    rewriter.setInsertionPointToStart(jLoop.getBody());
+    Value j = jLoop.getInductionVar();
 
-    // Emit tile_store to write the result back into C.
-    rewriter.create<TileStoreOp>(loc, result, C, c0, c0);
+    Value cTileVal = rewriter.create<TileLoadOp>(loc, tileType, C, i, j);
 
-    // Erase the original linalg.matmul.
+    auto kLoop = rewriter.create<scf::ForOp>(
+        loc, c0, cK, cTile, ValueRange{cTileVal});
+    rewriter.setInsertionPointToStart(kLoop.getBody());
+    Value k = kLoop.getInductionVar();
+    Value accIn = kLoop.getRegionIterArgs()[0];
+
+    Value aTileVal = rewriter.create<TileLoadOp>(loc, tileType, A, i, k);
+    Value bTileVal = rewriter.create<TileLoadOp>(loc, tileType, B, k, j);
+
+    Value accOut = rewriter.create<TileMatmulOp>(
+        loc, tileType, aTileVal, bTileVal, accIn);
+
+    rewriter.create<scf::YieldOp>(loc, ValueRange{accOut});
+
+    rewriter.setInsertionPointAfter(kLoop);
+    Value finalAcc = kLoop.getResult(0);
+    rewriter.create<TileStoreOp>(loc, finalAcc, C, i, j);
+
+    rewriter.setInsertionPointAfter(iLoop);
     rewriter.eraseOp(op);
     return success();
   }
 };
-
-//===----------------------------------------------------------------------===//
-// Pass driver
-//===----------------------------------------------------------------------===//
 
 class LinalgMatmulToToyNPUPass
     : public ::mlir::PassWrapper<LinalgMatmulToToyNPUPass,
@@ -99,14 +132,15 @@ public:
   }
 
   StringRef getDescription() const override {
-    return "Lower linalg.matmul into a toy_npu tile_load / tile_matmul / "
-           "tile_store sequence (16x16xf32 only).";
+    return "Lower linalg.matmul (any 16-divisible size) into tiled "
+           "toy_npu tile_load / tile_matmul / tile_store sequences.";
   }
 
   void getDependentDialects(DialectRegistry &registry) const override {
     registry.insert<linalg::LinalgDialect,
                     arith::ArithDialect,
                     memref::MemRefDialect,
+                    scf::SCFDialect,
                     ToyNPUDialect>();
   }
 

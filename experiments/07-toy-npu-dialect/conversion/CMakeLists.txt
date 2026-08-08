@@ -20,6 +20,7 @@ DEPS
     MLIRLinalgDialect
     MLIRMemRefDialect
     MLIRPass
+    MLIRSCFDialect
     MLIRSupport
     MLIRTransformUtils
     MLIRTransforms
