@@ -97,4 +97,75 @@ def ToyNPU_TileStoreOp : ToyNPU_Op<"tile_store"> {
   }];
 }
 
+//===----------------------------------------------------------------------===//
+// toy_npu.tile_zero
+//===----------------------------------------------------------------------===//
+
+def ToyNPU_TileZeroOp : ToyNPU_Op<"tile_zero", [Pure]> {
+  let summary = "Produce a zero-initialized tile register";
+  let description = [{
+    Creates a 16x16 tile register initialized to zero.
+    Used as the starting accumulator for a matmul reduction or for
+    zeroing an output tile before conv/bias/ReLU sequences.
+
+    Example:
+```mlir
+    %z = toy_npu.tile_zero : !toy_npu.tile
+```
+  }];
+
+  let results = (outs ToyNPU_TileType:$result);
+
+  let assemblyFormat = [{
+    attr-dict `:` type($result)
+  }];
+}
+
+//===----------------------------------------------------------------------===//
+// toy_npu.tile_relu
+//===----------------------------------------------------------------------===//
+
+def ToyNPU_TileReluOp : ToyNPU_Op<"tile_relu", [Pure]> {
+  let summary = "Elementwise ReLU on a tile register";
+  let description = [{
+    Applies `max(0, x)` elementwise to a 16x16 tile register.
+
+    Example:
+```mlir
+    %activated = toy_npu.tile_relu %pre_activation : !toy_npu.tile -> !toy_npu.tile
+```
+  }];
+
+  let arguments = (ins ToyNPU_TileType:$input);
+  let results = (outs ToyNPU_TileType:$result);
+
+  let assemblyFormat = [{
+    $input attr-dict `:` type($input) `->` type($result)
+  }];
+}
+
+//===----------------------------------------------------------------------===//
+// toy_npu.tile_add
+//===----------------------------------------------------------------------===//
+
+def ToyNPU_TileAddOp : ToyNPU_Op<"tile_add", [Pure]> {
+  let summary = "Elementwise add of two tile registers";
+  let description = [{
+    Computes `result = lhs + rhs` elementwise on 16x16 tile registers.
+    Used for bias-add in fused conv/matmul+bias sequences.
+
+    Example:
+```mlir
+    %sum = toy_npu.tile_add %a, %b : !toy_npu.tile, !toy_npu.tile -> !toy_npu.tile
+```
+  }];
+
+  let arguments = (ins ToyNPU_TileType:$lhs, ToyNPU_TileType:$rhs);
+  let results = (outs ToyNPU_TileType:$result);
+
+  let assemblyFormat = [{
+    $lhs `,` $rhs attr-dict `:` type($lhs) `,` type($rhs) `->` type($result)
+  }];
+}
+
 #endif  // IREE_DIALECT_TOYNPU_OPS

@@ -207,6 +207,29 @@ Natural extensions from here:
 
 None of these change the architectural pattern established here. They're extensions in scale, not in shape.
 
+## Update (Aug 8, 2026): fused matmul + bias + ReLU
+
+Extended the dialect with three more ops — `toy_npu.tile_zero`, `toy_npu.tile_relu`, `toy_npu.tile_add` — and added a second conversion pattern that recognizes `linalg.matmul` → `linalg.add` (bias) → `linalg.generic` (ReLU) sequences on 16×16 memrefs and fuses them into a single tile-register sequence.
+
+**Fusion proof** (`proof/fusion_output.mlir`):
+
+Input has three separate linalg ops sharing memref buffers. After the pass:
+
+```mlir
+%0 = toy_npu.tile_load %A[%c0, %c0]
+%1 = toy_npu.tile_load %B[%c0, %c0]
+%2 = toy_npu.tile_zero
+%3 = toy_npu.tile_matmul %0, %1, %2
+%4 = toy_npu.tile_load %bias[%c0, %c0]
+%5 = toy_npu.tile_add %3, %4
+%6 = toy_npu.tile_relu %5
+toy_npu.tile_store %6, %out[%c0, %c0]
+```
+
+All three linalg ops gone. No intermediate stores between compute, bias, and activation — the tile register carries the accumulator through the whole chain. This is the shape of vendor NPU compiler work.
+
+The fusion pattern is registered at higher priority than the plain matmul lowering, so it fires whenever the matmul+bias+ReLU chain is present; otherwise the matmul-only tiled pattern handles the case.
+
 ## Why this matters
 
 The daily work of an NPU compiler engineer at a company building custom accelerators looks like this at higher fidelity: define a dialect modeling the hardware primitives, write conversion patterns from upstream dialects (linalg, vector) to the hardware dialect, emit the loop structure that matches the hardware's memory hierarchy, register the passes so they can be invoked from the compiler driver, iterate based on workload characterization.
